@@ -17,6 +17,8 @@ class AnswerRepository:
         db.add(db_answer)
         db.commit()
         db.refresh(db_answer)
+
+        
         return db_answer
 
     @staticmethod

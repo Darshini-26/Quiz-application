@@ -21,7 +21,7 @@ class QuestionService:
         return QuestionRepository.get_question_by_quiz_and_id(db, quiz_id, question_id)
 
     @staticmethod
-    def fetch_random_questions_for_quiz(db, quiz_id, num_questions):
+    def fetch_random_questions_for_quiz(db, quiz_id:int, num_questions:int):
         # Call the repository to get the questions with options
         questions_with_options = QuestionRepository.get_random_questions(db, quiz_id, num_questions)
         
