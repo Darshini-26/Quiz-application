@@ -12,6 +12,11 @@ def create_access_token(data: dict):
     expire = datetime.utcnow() + timedelta(minutes=expire_minutes)
     to_encode.update({"exp": expire})
 
+     # Ensure user_id and is_admin are included in the token
+    user_id = data.get("user_id")
+    user_is_admin = data.get("is_admin", False)  # Default to False if not provided
+    to_encode.update({"user_id": user_id, "is_admin": user_is_admin})
+    
     # Convert UUID to string if it's in the data
     if isinstance(data.get("user_id"), UUID):
         to_encode["user_id"] = str(data["user_id"])

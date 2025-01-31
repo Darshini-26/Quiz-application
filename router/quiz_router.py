@@ -7,7 +7,7 @@ from auth.auth import JWTBearer
 
 quiz_router = APIRouter()
 
-@quiz_router.post("/", response_model=QuizResponse,dependencies= [Depends(JWTBearer())])
+@quiz_router.post("/", response_model=QuizResponse,dependencies=[Depends(JWTBearer(admin_required=True))])
 def create_new_quiz(quiz: QuizCreate, db: Session = Depends(get_db)):
     return create_quiz(db, quiz)
 
@@ -19,6 +19,3 @@ def list_quizzes(db: Session = Depends(get_db)):
 def get_quiz(title:str, db: Session = Depends(get_db)):
     return get_quiz_by_title(db, title)
 
-# @quiz_router.get("/quiz/{quiz_id}/questions")
-# def get_random_questions(quiz_id: int, num_questions: int = 5, db: Session = Depends(get_db)):
-#     return get_random_questions(db, quiz_id, num_questions)

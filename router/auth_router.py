@@ -15,10 +15,11 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
 
     hashed_password = get_password_hash(user.password)
 
-    new_user = User(
+    new_user = User (
         name=user.name,
         email=user.email,
-        hashed_password=hashed_password
+        hashed_password=hashed_password,
+        is_admin=user.is_admin
     )
 
     db.add(new_user)
@@ -34,5 +35,5 @@ def login(user: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Invalid username or password")
     
     # Include the user_id when creating the access token
-    access_token = create_access_token({"user_id": db_user.user_id})
+    access_token = create_access_token({"user_id": db_user.user_id,"is_admin": db_user.is_admin})
     return {"access_token": access_token, "token_type": "bearer"}

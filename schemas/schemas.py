@@ -4,19 +4,20 @@ from pydantic import BaseModel, EmailStr
 import uuid
 
 
-# ✅ Login Schema
+# Login Schema
 class Login(BaseModel):
     name: str
     password: str
 
 
-# ✅ User Schemas
+#  User Schemas
 class UserBase(BaseModel):
     name: str
     email: EmailStr
 
 class UserCreate(UserBase):
-    password: str  # Only required when creating a user
+    password: str 
+    is_admin:bool=False # Only required when creating a user
 
 class UserResponse(UserBase):
     user_id: uuid.UUID
@@ -25,7 +26,7 @@ class UserResponse(UserBase):
         from_attributes = True
 
 
-# ✅ Quiz Schemas
+# Quiz Schemas
 class QuizBase(BaseModel):
     title: str
     description: Optional[str] = None
@@ -40,13 +41,13 @@ class QuizResponse(QuizBase):
         from_attributes = True
 
 
-# ✅ Option (Answer Choices) Schema
+# Option (Answer Choices) Schema
 class OptionResponse(BaseModel):
     id: int
-    text: str  # ✅ No `is_correct` field (only text)
+    text: str  # No `is_correct` field (only text)
 
 
-# ✅ Question Schemas
+# Question Schemas
 class QuestionBase(BaseModel):
     text: str
 
@@ -61,17 +62,17 @@ class QuestionResponse(QuestionBase):
         from_attributes = True
 
 
-# ✅ Question with Options Response (for API)
+# Question with Options Response (for API)
 class QuizQuestionResponse(BaseModel):
     id: int
     text: str
-    options: List[OptionResponse]  # ✅ Returns list of options instead of `quiz_id`
+    options: List[OptionResponse]  # Returns list of options instead of `quiz_id`
 
     class Config:
         from_attributes = True
 
 
-# ✅ Answer Schema
+#  Answer Schema
 class AnswerBase(BaseModel):
     text: str
     is_correct: bool
@@ -79,7 +80,7 @@ class AnswerBase(BaseModel):
 class AnswerCreate(BaseModel):
     question_id: int
     quiz_id:int
-    options: List[AnswerBase]  # ✅ Users select from a list of options
+    options: List[AnswerBase]  #  Users select from a list of options
 
 class Answers(BaseModel):
     id: int  # ID of the question being answered
@@ -95,26 +96,12 @@ class QuizSubmissionRequest(BaseModel):
 
 class AnswerResponse(AnswerBase):
     id: int
-    question_id: int  # ✅ Removed `quiz_id` (not needed)
+    question_id: int  #  Removed `quiz_id` (not needed)
 
     class Config:
         from_attributes = True
 
 
-# ✅ User Quiz Schema (Tracks User Scores)
-class UserQuizBase(BaseModel):
-    user_id: uuid.UUID
-    quiz_id: int
-    score: Optional[int] = None
-
-class UserQuizCreate(UserQuizBase):
-    pass
-
-class UserQuizResponse(UserQuizBase):
-    id: int
-
-    class Config:
-        from_attributes = True
 
 class ReviewCreate(BaseModel):
     rating: int

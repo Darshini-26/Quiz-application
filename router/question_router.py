@@ -8,7 +8,7 @@ from typing import List
 
 question_router = APIRouter()
 
-@question_router.post("/{quiz_id}/", response_model=QuestionResponse,dependencies= [Depends(JWTBearer())])
+@question_router.post("/{quiz_id}/", response_model=QuestionResponse,dependencies= [Depends(JWTBearer(admin_required=True))])
 def create_question(quiz_id: int, question_body: QuestionCreate, db: Session = Depends(get_db)):
     """
     Create a question for the given quiz_id.
@@ -19,11 +19,11 @@ def create_question(quiz_id: int, question_body: QuestionCreate, db: Session = D
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
-@question_router.get("/", response_model=list[QuestionResponse],dependencies= [Depends(JWTBearer())])
-def list_questions(db: Session = Depends(get_db)):
-    return QuestionService.get_all_questions(db)
+# @question_router.get("/", response_model=list[QuestionResponse],dependencies= [Depends(JWTBearer())])
+# def list_questions(db: Session = Depends(get_db)):
+#     return QuestionService.get_all_questions(db)
 
-@question_router.get("/{quiz_id}", response_model=list[QuestionResponse],dependencies= [Depends(JWTBearer())])
+@question_router.get("/{quiz_id}", response_model=list[QuestionResponse],dependencies= [Depends(JWTBearer(admin_required=True))])
 def get_question(quiz_id: int, db: Session = Depends(get_db)):
     return QuestionService.get_questions_by_quizid(db, quiz_id)
 

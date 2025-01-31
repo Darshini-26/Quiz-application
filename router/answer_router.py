@@ -4,18 +4,19 @@ from schemas.schemas import AnswerCreate, AnswerResponse, Answers,AnswerSubmitRe
 from service.answer_services import AnswerService
 from service.question_services import QuestionService
 from config.database import get_db
-from models.models import Answer,Question,Option,Question,Review
+from models.models import Answer,Question,Option,Question,Review,Score,UserAnswer
 from auth.auth import JWTBearer
 from typing import Optional,List
 
 
 answer_router = APIRouter(prefix="/answers", tags=["Answers"])
 
-@answer_router.post("/quiz/{quiz_id}/submit-answers")
+@answer_router.post("/quiz/{quiz_id}/submit-answers", dependencies=[Depends(JWTBearer())])
 def submit_answers(
     quiz_id: int, 
     submission: QuizSubmissionRequest, 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    token: str = Depends(JWTBearer())  # Get token
 ):
     """
     Submit answers for all randomized questions in a quiz and calculate score.
@@ -23,6 +24,9 @@ def submit_answers(
     response = []
     total_questions = len(submission.answers)
     correct_answers = 0  # Counter for correct answers
+
+    # 🔹 Get user_id from token
+    user_id = JWTBearer.get_user_id_from_token(token)
 
     for answer in submission.answers:
         # Validate if the selected option exists for the given question and quiz
@@ -40,13 +44,15 @@ def submit_answers(
         if is_correct:
             correct_answers += 1  # Increment score if correct
 
-        # Store the user's answer
-        new_answer = Answer(
+        # 🔹 Store user's response in UserAnswer table
+        user_answer = UserAnswer(
+            user_id=user_id,
             quiz_id=quiz_id,
             question_id=answer.question_id,
-            is_correct=is_correct  # Store correctness, but no need to store option_id
+            selected_option_id=answer.option_id,
+            is_correct=is_correct
         )
-        db.add(new_answer)
+        db.add(user_answer)
 
         response.append({
             "question_id": answer.question_id,
@@ -56,17 +62,26 @@ def submit_answers(
 
     db.commit()  # Commit all answers in one go
 
-    # Calculate and format the final score
-    score = f"{correct_answers}/{total_questions}"
+    # 🔹 Calculate and Save Score to `scores` table
+    score_percentage = (correct_answers / total_questions) * 100
+
+    new_score = Score(
+        user_id=user_id,
+        quiz_id=quiz_id,
+        score=score_percentage
+    )
+    db.add(new_score)
+    db.commit()
 
     return {
         "message": "Answers submitted successfully.",
-        "score": score,  # Display the marks
+        "score": f"{correct_answers}/{total_questions}",  # Display the marks
+        "percentage": f"{score_percentage}%",  # Show score percentage
         "results": response
     }
 
 
-@answer_router.post("/", status_code=201)
+@answer_router.post("/", status_code=201,dependencies=[Depends(JWTBearer(admin_required=True))])
 def create_answers(answer_data: AnswerCreate, db: Session = Depends(get_db)):
     """
     Accept multiple answer options and store both correct and incorrect answers.
@@ -96,40 +111,40 @@ def create_answers(answer_data: AnswerCreate, db: Session = Depends(get_db)):
 
 
 
-@answer_router.get("/{question_id}/", response_model=list[AnswerResponse],dependencies= [Depends(JWTBearer())])
-def get_answers_by_question_id(question_id: int, db: Session = Depends(get_db)):
-    """
-    Get all answers for a specific question.
-    """
-    try:
-        answers = AnswerService.get_answers_by_question_id(db, question_id)
-        return answers
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+# @answer_router.get("/{question_id}/", response_model=list[AnswerResponse],dependencies= [Depends(JWTBearer())])
+# def get_answers_by_question_id(question_id: int, db: Session = Depends(get_db)):
+#     """
+#     Get all answers for a specific question.
+#     """
+#     try:
+#         answers = AnswerService.get_answers_by_question_id(db, question_id)
+#         return answers
+#     except Exception as e:
+#         raise HTTPException(status_code=400, detail=str(e))
 
 
-@answer_router.get("/", response_model=list[AnswerResponse],dependencies= [Depends(JWTBearer())])
-def get_all_answers(db: Session = Depends(get_db)):
-    """
-    Get all answers in the database.
-    """
-    try:
-        answers = AnswerService.get_all_answers(db)
-        return answers
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+# @answer_router.get("/", response_model=list[AnswerResponse],dependencies= [Depends(JWTBearer())])
+# def get_all_answers(db: Session = Depends(get_db)):
+#     """
+#     Get all answers in the database.
+#     """
+#     try:
+#         answers = AnswerService.get_all_answers(db)
+#         return answers
+#     except Exception as e:
+#         raise HTTPException(status_code=400, detail=str(e))
 
 
-@answer_router.get("/{question_id}/", response_model=List[AnswerResponse])
-def get_correct_answers(question_id: int, db: Session = Depends(get_db)):
-    """
-    Fetch only the correct answers for a given question.
-    """
-    correct_answers = db.query(Answer).filter(
-        Answer.question_id == question_id, Answer.is_correct == True
-    ).all()
+# @answer_router.get("/{question_id}/", response_model=List[AnswerResponse])
+# def get_correct_answers(question_id: int, db: Session = Depends(get_db)):
+#     """
+#     Fetch only the correct answers for a given question.
+#     """
+#     correct_answers = db.query(Answer).filter(
+#         Answer.question_id == question_id, Answer.is_correct == True
+#     ).all()
 
-    if not correct_answers:
-        raise HTTPException(status_code=404, detail="No correct answers found for this question")
+#     if not correct_answers:
+#         raise HTTPException(status_code=404, detail="No correct answers found for this question")
 
-    return correct_answers
+#     return correct_answers
