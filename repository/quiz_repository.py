@@ -12,7 +12,7 @@ class QuizRepository:
         return new_quiz
 
     @staticmethod
-    def get_all_quizzes(db: Session):
+    def get_all_category(db: Session):
         return db.query(Quiz).all()
 
     @staticmethod

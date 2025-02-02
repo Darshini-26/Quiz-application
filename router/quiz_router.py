@@ -7,6 +7,8 @@ from auth.auth import JWTBearer
 
 quiz_router = APIRouter()
 
+
+
 @quiz_router.post("/", response_model=QuizResponse,dependencies=[Depends(JWTBearer(admin_required=True))])
 def create_new_quiz(quiz: QuizCreate, db: Session = Depends(get_db)):
     return create_quiz(db, quiz)

@@ -8,11 +8,11 @@ from sqlalchemy.sql import func
 class QuestionRepository:
     @staticmethod
     def create_question(db: Session, quiz_id: int, text: str):
-        print(f"📌 Received quiz_id: {quiz_id}")  # Debugging log
+        print(f"Received quiz_id: {quiz_id}")  # Debugging log
         max_id = db.query(Question.id).filter(Question.quiz_id == quiz_id).order_by(Question.id.desc()).first()
         next_id = max_id[0] + 1 if max_id else 1
 
-        new_question = Question(text=text, quiz_id=quiz_id)  # ✅ Let the database handle id
+        new_question = Question(text=text, quiz_id=quiz_id)  #  Let the database handle id
 
 
 
@@ -20,7 +20,7 @@ class QuestionRepository:
         db.commit()
         db.refresh(new_question)
         
-        print(f"✅ After refresh: {new_question.quiz_id}")  # Debugging log
+        print(f"After refresh: {new_question.quiz_id}")  # Debugging log
 
         return new_question
 
