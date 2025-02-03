@@ -1,7 +1,9 @@
-from fastapi import Request, HTTPException
+from fastapi import  Header,Request, HTTPException
 from fastapi.security import HTTPBearer
 from jose import JWTError, jwt
 from config.settings import app_config
+from dotenv import load_dotenv
+
 
 class JWTBearer(HTTPBearer):
     def __init__(self, auto_error: bool = True, admin_required: bool = False):
@@ -45,3 +47,5 @@ class JWTBearer(HTTPBearer):
             return user_id
         except JWTError:
             raise HTTPException(status_code=401, detail="Invalid or expired token")
+        
+    

@@ -1,15 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from models.models import  Quiz,Review,User
+from models.models import   User, Rating
 from config.database import get_db
 from schemas.schemas import ReviewCreate
 from auth.auth import JWTBearer  # Assuming you're using JWT authentication
 
-review_router = APIRouter()
+router = APIRouter()
 
-@review_router.post("/")
-def submit_review(quiz_id: int, rating: float, feedback: str = None, db: Session = Depends(get_db), token: str = Depends(JWTBearer())):
-    # Extract the user_id from the JWT token directly using get_user_id_from_token
+@router.post("/")
+def submit_review(category_id: int, rating: float, review: str = None, db: Session = Depends(get_db), token: str = Depends(JWTBearer())):
     user_id = JWTBearer.get_user_id_from_token(token)
     
     # Query the User table to get the user information
@@ -22,7 +21,7 @@ def submit_review(quiz_id: int, rating: float, feedback: str = None, db: Session
         raise HTTPException(status_code=400, detail="Rating must be between 1 and 5.")
 
     # Create a new review for the quiz with the extracted user_id
-    review = Review(quiz_id=quiz_id, user_id=user.user_id, rating=rating, feedback=feedback)
+    review = Rating(category_id=category_id, user_id=user.user_id, rating=rating, review=review)
     db.add(review)
     db.commit()
     db.refresh(review)

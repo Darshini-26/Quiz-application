@@ -2,7 +2,7 @@ import boto3
 import os
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 
-def quiz_application(name,with_decryption=True,region_name=None):
+def quiz_application1(name,with_decryption=True,region_name=None):
 
     print(f"Retrieving parameter:{name}")
 
@@ -10,8 +10,8 @@ def quiz_application(name,with_decryption=True,region_name=None):
         region_name=region_name or os.getenv('AWS_DEFAULT_REGION','us-east-1')
         ssm_client=boto3.client('ssm',region_name=region_name)
 
-        repsonse=ssm_client.get_parameter(Name=name,WithDecryption=with_decryption)
-        parameter_value=repsonse['Parameter']['Value']
+        response=ssm_client.get_parameter(Name=name,WithDecryption=with_decryption)
+        parameter_value=response['Parameter']['Value']
         return parameter_value
     
     except NoCredentialsError:

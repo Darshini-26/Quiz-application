@@ -1,8 +1,7 @@
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import sessionmaker
 import config.config as config
-# from contextlib import contextmanager
 
 # Retrieve the DATABASE_URL from config.py (via SSM)
 DATABASE_URL = config.database_url()
@@ -20,11 +19,6 @@ engine = create_engine(
     connect_args={"connect_timeout": 30}  # Connection timeout in seconds
 )
 
-# Test connection with a simple query
-# with engine.connect() as connection:
-#     result = connection.execute(text("SELECT 1"))
-#     print(result.fetchone())
-
 # Set up the session maker
 SessionLocal = sessionmaker(
     autocommit=False,
@@ -35,10 +29,13 @@ SessionLocal = sessionmaker(
 # Base class for models
 Base = declarative_base()
 
-# @contextmanager
+# Dependency to get the DB session
 def get_db():
-    db = SessionLocal()
+    db = SessionLocal()  # Create a new session from the sessionmaker
     try:
         yield db
     finally:
         db.close()  # Ensure this line is not indented under the try block
+
+# Create all tables in the database
+Base.metadata.create_all(bind=engine)

@@ -17,95 +17,77 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str 
-    is_admin:bool=False # Only required when creating a user
+    is_admin: bool = False
 
 class UserResponse(UserBase):
-    user_id: uuid.UUID
+    # user_id: uuid.UUID
 
     class Config:
         from_attributes = True
 
 
-# Quiz Schemas
-class QuizBase(BaseModel):
+# Category Schemas
+class CategoryBase(BaseModel):
     title: str
     description: Optional[str] = None
 
-class QuizCreate(QuizBase):
+class CategoryCreate(CategoryBase):
     pass
 
-class QuizResponse(QuizBase):
-    id: int
+class CategoryResponse(CategoryBase):
+    category_id: int
 
     class Config:
         from_attributes = True
-
-
-# Option (Answer Choices) Schema
-class OptionResponse(BaseModel):
-    id: int
-    text: str  # No `is_correct` field (only text)
 
 
 # Question Schemas
 class QuestionBase(BaseModel):
     text: str
+    options: List[str]  # List of 4 answer choices
+    correct_option: str  # The correct answer text
+
 
 class QuestionCreate(QuestionBase):
+    # category_id: int
     pass
 
+class BulkQuestionCreate(BaseModel):
+    questions: List[QuestionCreate]
+
 class QuestionResponse(QuestionBase):
-    id: int
-    quiz_id: int
+    question_id: int
+    category_id: int
 
     class Config:
         from_attributes = True
 
 
-# Question with Options Response (for API)
-class QuizQuestionResponse(BaseModel):
-    id: int
-    text: str
-    options: List[OptionResponse]  # Returns list of options instead of `quiz_id`
-
-    class Config:
-        from_attributes = True
-
-
-#  Answer Schema
+# Answer Schemas
 class AnswerBase(BaseModel):
     text: str
-    is_correct: bool
 
-class AnswerCreate(BaseModel):
+class AnswerCreate(AnswerBase):
     question_id: int
-    quiz_id:int
-    options: List[AnswerBase]  #  Users select from a list of options
-
-class Answers(BaseModel):
-    id: int  # ID of the question being answered
-    option_id: int
 
 class AnswerSubmitRequest(BaseModel):
-    question_id: int
-    option_id: int
-    
-class QuizSubmissionRequest(BaseModel):
-    answers: List[AnswerSubmitRequest]
-
+    answers: List[AnswerCreate]
 
 class AnswerResponse(AnswerBase):
     id: int
-    question_id: int  #  Removed `quiz_id` (not needed)
+    question_id: int
 
     class Config:
         from_attributes = True
 
 
-
+# Rating Schema
 class ReviewCreate(BaseModel):
     rating: int
     feedback: str | None = None  # Optional feedback
+
+    class Config:
+        from_attributes = True
 
     class Config:
         from_attributes = True
