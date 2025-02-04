@@ -9,7 +9,6 @@ from config.database import Base,engine
 from sqlalchemy.dialects.postgresql import JSONB
 
 
-
 class User(Base):
     __tablename__ = "users"
 
@@ -18,11 +17,11 @@ class User(Base):
     email = Column(String, unique=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     is_admin = Column(Boolean, default=False)
-    category_id = Column(Integer, ForeignKey("categories.category_id"))
 
-    category = relationship("Category", back_populates="users")
+
     answers = relationship('Answer', back_populates='user')
     ratings = relationship("Rating", back_populates="user", cascade="all, delete-orphan")
+
 
 class Category(Base):
     __tablename__ = 'categories'
@@ -31,7 +30,6 @@ class Category(Base):
     title = Column(String, index=True, nullable=False)
     description = Column(Text, nullable=True)
 
-    users = relationship("User", back_populates="category")
     questions = relationship("Question", back_populates="category")
     ratings = relationship("Rating", back_populates="category", cascade="all, delete-orphan")
 
@@ -55,8 +53,9 @@ class Answer(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     question_id = Column(Integer, ForeignKey("questions.question_id", ondelete="CASCADE"), nullable=False)
     text = Column(String, nullable=False)
+    option_id = Column(Integer) 
     user_id = Column(UUID, ForeignKey('users.user_id'))  # Foreign key to User
-    is_correct = Column(Integer, default=False)
+    is_correct = Column(Boolean, default=False)
 
     question = relationship("Question", back_populates="answers")
     user = relationship('User', back_populates='answers')

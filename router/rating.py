@@ -5,7 +5,7 @@ from config.database import get_db
 from schemas.schemas import ReviewCreate
 from auth.auth import JWTBearer  # Assuming you're using JWT authentication
 
-router = APIRouter()
+router = APIRouter(prefix="/ratings", tags=["Rating"])
 
 @router.post("/")
 def submit_review(category_id: int, rating: float, review: str = None, db: Session = Depends(get_db), token: str = Depends(JWTBearer())):

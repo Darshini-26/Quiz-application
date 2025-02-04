@@ -31,10 +31,10 @@ class QuestionService:
 
 
     @staticmethod
-    def fetch_random_questions_for_quiz(uow: UnitOfWork, quiz_id: int, num_questions: int):
+    def fetch_random_questions_for_quiz(uow: UnitOfWork, category_id: int, num_questions: int):
         with uow:
             # Fetch random questions
-            questions = uow.questions.fetch_random_questions(uow._session, quiz_id, num_questions)
+            questions = uow.questions.fetch_random_questions(uow._session, category_id, num_questions)
 
             # Format the response
             result = [

@@ -14,7 +14,7 @@ def get_uow() -> UnitOfWork:
     # Returning UnitOfWork, assuming it provides access to the necessary repositories.
     return UnitOfWork(SessionLocal)
 
-@router.post("/", response_model=CategoryResponse,dependencies= [Depends(JWTBearer())])  # Change to CategoryResponse for better structure
+@router.post("/", response_model=CategoryResponse,dependencies=[Depends(JWTBearer(admin_required=True))])  # Change to CategoryResponse for better structure
 def create_category(category: CategoryCreate, uow: UnitOfWork = Depends(get_uow)):
     try:
         # This should call the appropriate service method to handle category creation

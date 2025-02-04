@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List,Dict
 from pydantic import BaseModel, EmailStr
 import uuid
 
@@ -17,7 +17,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str 
-    is_admin: bool = False
+    # is_admin: bool = False
 
 class UserResponse(UserBase):
     # user_id: uuid.UUID
@@ -40,11 +40,14 @@ class CategoryResponse(CategoryBase):
     class Config:
         from_attributes = True
 
+class Option(BaseModel):
+    option_id: int
+    text: str
 
 # Question Schemas
 class QuestionBase(BaseModel):
     text: str
-    options: List[str]  # List of 4 answer choices
+    options: List[Option]  # List of 4 answer choices
     correct_option: str  # The correct answer text
 
 
@@ -58,6 +61,7 @@ class BulkQuestionCreate(BaseModel):
 class QuestionResponse(QuestionBase):
     question_id: int
     category_id: int
+    
 
     class Config:
         from_attributes = True
@@ -65,11 +69,12 @@ class QuestionResponse(QuestionBase):
 
 # Answer Schemas
 class AnswerBase(BaseModel):
-    text: str
+    option_id: int
 
-class AnswerCreate(AnswerBase):
+class AnswerCreate(BaseModel):
     question_id: int
-
+    option_id: int
+    
 class AnswerSubmitRequest(BaseModel):
     answers: List[AnswerCreate]
 

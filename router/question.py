@@ -13,7 +13,7 @@ def get_uow() -> UnitOfWork:
     # Returning UnitOfWork, assuming it provides access to the necessary repositories
     return UnitOfWork(SessionLocal)
 
-@router.post("/{category_id}/", response_model=QuestionResponse,dependencies= [Depends(JWTBearer())])
+@router.post("/{category_id}/", response_model=QuestionResponse,dependencies=[Depends(JWTBearer(admin_required=True))])
 def create_question(question: QuestionCreate, category_id: int, uow: UnitOfWork = Depends(get_uow)):
     try:
         # Create question using the QuestionService
@@ -43,17 +43,17 @@ def read_questions(uow: UnitOfWork = Depends(get_uow)):
         # Handle failure to retrieve questions
         raise HTTPException(status_code=500, detail="Failed to fetch questions")
 
-@router.get("/{quiz_id}", response_model=QuestionResponse,dependencies= [Depends(JWTBearer())])
-def read_question(quiz_id: int, uow: UnitOfWork = Depends(get_uow)):
-    try:
-        # Retrieve question by its ID
-        return QuestionService.get_question_by_id_service(uow, quiz_id)
-    except Exception as e:
-        # Handle failure to find the question
-        raise HTTPException(status_code=404, detail=str(e))
+# @router.get("/{quiz_id}", response_model=QuestionResponse,dependencies= [Depends(JWTBearer())])
+# def read_question(quiz_id: int, uow: UnitOfWork = Depends(get_uow)):
+#     try:
+#         # Retrieve question by its ID
+#         return QuestionService.get_question_by_id_service(uow, quiz_id)
+#     except Exception as e:
+#         # Handle failure to find the question
+#         raise HTTPException(status_code=404, detail=str(e))
     
-@router.get("/quiz/{quiz_id}/random-questions",dependencies= [Depends(JWTBearer())])
-def get_quiz_questions(quiz_id: int, num_questions: int = 5,uow: UnitOfWork = Depends(get_uow)):
+@router.get("/quiz/{category_id}/random-questions",dependencies= [Depends(JWTBearer())])
+def get_quiz_questions(category_id: int, num_questions: int = 5,uow: UnitOfWork = Depends(get_uow)):
     # Fetch random questions with options from the service layer
-    questions =  QuestionService.fetch_random_questions_for_quiz(uow, quiz_id, num_questions)
+    questions =  QuestionService.fetch_random_questions_for_quiz(uow, category_id, num_questions)
     return questions

@@ -19,7 +19,7 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         name=user.name,
         email=user.email,
         hashed_password=hashed_password,
-        is_admin=user.is_admin
+        # is_admin=user.is_admin
     )
 
     db.add(new_user)
@@ -29,7 +29,7 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     return new_user  # Return the newly created user, which will be serialized into UserResponse
 
 @router.post("/login")
-def login(user: UserCreate, db: Session = Depends(get_db)):
+def login(user: Login, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.name == user.name).first()
     if not db_user or not verify_password(user.password, db_user.hashed_password):
         raise HTTPException(status_code=400, detail="Invalid username or password")

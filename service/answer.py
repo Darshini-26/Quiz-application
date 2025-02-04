@@ -15,7 +15,7 @@ class AnswerService:
         total_questions = len(answers)
 
         # Decode user_id from JWT token
-        user_id = JWTBearer.get_user_id_from_token(token)  # Ensure this method extracts the user_id correctly
+        user_id = JWTBearer.get_user_id_from_token(token)
 
         with uow:
             for answer in answers:
@@ -26,11 +26,30 @@ class AnswerService:
                         "error": "Question not found in the specified category"
                     })
                 else:
-                    is_correct = question.correct_option.lower() == answer.text.lower()
+                    correct_option_id = None
+                    selected_option_text = None  # Store the selected option's text
+
+                    for option in question.options:
+                        if option['option_id'] == answer.option_id:
+                            selected_option_text = option['text']
+                        if option['text'] == question.correct_option:
+                            correct_option_id = option['option_id']
+
+                    # Check if the provided option_id is valid
+                    if answer.option_id is None or not any(option['option_id'] == answer.option_id for option in question.options):
+                        results.append({
+                            "question_id": answer.question_id,
+                            "error": "Invalid option_id"
+                        })
+                        continue  # Skip this answer if option_id is invalid
+
+                    # Compare option_id and set correctness
+                    is_correct = correct_option_id == answer.option_id
                     if is_correct:
                         correct_count += 1
-                    # Now, pass the user_id (which should be a UUID) when saving the answer
-                    uow.answers.save_answer(user_id, answer.question_id, answer.text, is_correct)
+
+                    # Now save the correct values: option_id (integer), text (string)
+                    uow.answers.save_answer(user_id, answer.question_id, answer.option_id, selected_option_text, is_correct)
 
                     results.append({
                         "question_id": answer.question_id,
@@ -42,3 +61,4 @@ class AnswerService:
             "correct_count": correct_count,
             "total_questions": total_questions
         }
+
