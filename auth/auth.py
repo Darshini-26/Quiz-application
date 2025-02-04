@@ -1,9 +1,12 @@
-from fastapi import  Header,Request, HTTPException
+import redis
+from fastapi import Header, Request, HTTPException
 from fastapi.security import HTTPBearer
 from jose import JWTError, jwt
 from config.settings import app_config
-from dotenv import load_dotenv
+from datetime import datetime, timedelta
 
+# Initialize Redis client
+redis_client = redis.Redis(host="172.22.9.28", port=6379, db=0, decode_responses=True)
 
 class JWTBearer(HTTPBearer):
     def __init__(self, auto_error: bool = True, admin_required: bool = False):
@@ -16,13 +19,19 @@ class JWTBearer(HTTPBearer):
             if not credentials.scheme == "Bearer":
                 raise HTTPException(status_code=403, detail="Invalid authentication scheme.")
             
-            payload = self.verify_jwt(credentials.credentials)
-            
+            token = credentials.credentials
+
+            # Check if token is blacklisted (invalidated)
+            if redis_client.get(f"blacklist:{token}"):
+                raise HTTPException(status_code=401, detail="Token has been revoked.")
+
+            payload = self.verify_jwt(token)
+
             # If admin access is required, check is_admin field
             if self.admin_required and not payload.get("is_admin"):
                 raise HTTPException(status_code=403, detail="Admin access required.")
             
-            return credentials.credentials
+            return token
         else:
             raise HTTPException(status_code=403, detail="Invalid authorization code.")
 
@@ -35,7 +44,7 @@ class JWTBearer(HTTPBearer):
             return payload  # Return payload so we can check is_admin
         except JWTError:
             raise HTTPException(status_code=403, detail="Invalid or expired token.")
-        
+
     @staticmethod
     def get_user_id_from_token(token: str) -> str:
         """Extract user_id from JWT token."""
@@ -47,5 +56,18 @@ class JWTBearer(HTTPBearer):
             return user_id
         except JWTError:
             raise HTTPException(status_code=401, detail="Invalid or expired token")
-        
-    
+
+    @staticmethod
+    def logout(token: str):
+        """Blacklist the token by storing it in Redis until it expires."""
+        try:
+            payload = jwt.decode(token, app_config["SECRET_KEY"], algorithms=[app_config["ALGORITHM"]])
+            exp_timestamp = payload.get("exp")
+            if exp_timestamp:
+                expiry_time = datetime.utcfromtimestamp(exp_timestamp) - datetime.utcnow()
+                redis_client.setex(f"blacklist:{token}", int(expiry_time.total_seconds()), "revoked")
+        except JWTError:
+            raise HTTPException(status_code=401, detail="Invalid token")
+
+
+

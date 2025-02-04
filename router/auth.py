@@ -4,6 +4,8 @@ from schemas.schemas import UserCreate, UserResponse, Login
 from models.models import User
 from config.database import get_db
 from service.auth import create_access_token, verify_password, get_password_hash
+from fastapi.responses import JSONResponse
+from auth.auth import JWTBearer
 
 router = APIRouter()
 
@@ -37,3 +39,8 @@ def login(user: Login, db: Session = Depends(get_db)):
     # Include the user_id when creating the access token
     access_token = create_access_token({"user_id": db_user.user_id,"is_admin": db_user.is_admin})
     return {"access_token": access_token, "token_type": "bearer"}
+
+@router.post("/logout")
+async def logout(token: str = Depends(JWTBearer())):
+    JWTBearer.logout(token)
+    return {"message": "Logged out successfully"}
