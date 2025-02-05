@@ -1,4 +1,5 @@
-import redis
+from redis import Redis
+from config.redis import settings
 from fastapi import Header, Request, HTTPException
 from fastapi.security import HTTPBearer
 from jose import JWTError, jwt
@@ -6,7 +7,7 @@ from config.settings import app_config
 from datetime import datetime, timedelta
 
 # Initialize Redis client
-redis_client = redis.Redis(host="172.22.9.28", port=6379, db=0, decode_responses=True)
+redis_client =Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=0, decode_responses=True)
 
 class JWTBearer(HTTPBearer):
     def __init__(self, auto_error: bool = True, admin_required: bool = False):
