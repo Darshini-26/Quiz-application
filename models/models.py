@@ -1,7 +1,7 @@
 from datetime import datetime
 import uuid
 from sqlalchemy import (
-    Column, Integer, String, Boolean, ForeignKey, Text
+    Column, Integer, String, Boolean, ForeignKey, Text,Float
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -21,6 +21,7 @@ class User(Base):
 
     answers = relationship('Answer', back_populates='user')
     ratings = relationship("Rating", back_populates="user", cascade="all, delete-orphan")
+    scores=relationship("Score",back_populates="user",cascade="all, delete-orphan")
 
 
 class Category(Base):
@@ -32,6 +33,7 @@ class Category(Base):
 
     questions = relationship("Question", back_populates="category")
     ratings = relationship("Rating", back_populates="category", cascade="all, delete-orphan")
+    scores=relationship("Score",back_populates="category",cascade="all, delete-orphan")
 
 
 class Question(Base):
@@ -71,3 +73,14 @@ class Rating(Base):
 
     user = relationship("User", back_populates="ratings")
     category = relationship("Category", back_populates="ratings")
+
+class Score(Base):
+    __tablename__ = "scores"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(UUID, ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
+    category_id = Column(Integer, ForeignKey("categories.category_id", ondelete="CASCADE"), nullable=False)
+    score_percentage = Column(Float, nullable=False)  # Storing score as a percentage
+
+    user = relationship("User", back_populates="scores")
+    category = relationship("Category", back_populates="scores")

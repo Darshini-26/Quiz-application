@@ -48,8 +48,9 @@ class AnswerService:
                     if is_correct:
                         correct_count += 1
 
+
                     # Now save the correct values: option_id (integer), text (string)
-                    uow.answers.save_answer(user_id, answer.question_id, answer.option_id, selected_option_text, is_correct)
+                    percentage=uow.answers.save_answer(user_id, answer.question_id, answer.option_id, selected_option_text, is_correct,category_id,total_questions,correct_count)
 
                     results.append({
                         "question_id": answer.question_id,
@@ -59,6 +60,7 @@ class AnswerService:
         return {
             "results": results,
             "correct_count": correct_count,
-            "total_questions": total_questions
+            "total_questions": total_questions,
+            "Percentage":percentage
         }
 

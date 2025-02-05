@@ -41,6 +41,6 @@ def login(user: Login, db: Session = Depends(get_db)):
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.post("/logout")
-async def logout(token: str = Depends(JWTBearer())):
+def logout(token: str = Depends(JWTBearer())):
     JWTBearer.logout(token)
     return {"message": "Logged out successfully"}
