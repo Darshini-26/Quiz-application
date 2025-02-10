@@ -2,6 +2,7 @@ from fastapi import HTTPException
 from models.models import Question
 from schemas.schemas import QuestionCreate
 from .unit_of_work import UnitOfWork
+from sqlalchemy.orm.exc import NoResultFound
 
 class QuestionService:
     @staticmethod  # Use staticmethod decorator
@@ -48,3 +49,39 @@ class QuestionService:
             ]
 
             return result
+
+
+    @staticmethod
+    def update_question_service(
+        uow: UnitOfWork, category_id: int, question_id: int, question_data: QuestionCreate
+    ):
+        with uow:
+            question = uow.questions.get_question_by_id(uow._session, category_id, question_id)
+            if not question:
+                raise NoResultFound("Question not found.")
+
+            # Store options as a JSON string in the DB
+            options_json = json.dumps([option.dict() for option in question_data.options])
+
+            question.text = question_data.text
+            question.correct_option = question_data.correct_option
+            question.options = options_json  # Stored as JSON string
+
+            uow.commit()
+
+            # Convert options back to a list before returning
+            question.options = json.loads(question.options)  # Convert JSON string to list
+
+            return question
+        
+    @staticmethod
+    def delete_question_service(uow: UnitOfWork, category_id: int, question_id: int):
+        with uow:
+            question = uow.questions.get_question_by_id(uow._session, category_id, question_id)
+            if not question:
+                raise NoResultFound("Question not found.")
+
+            uow.questions.delete_question(uow._session, question)  # Call repository method
+            uow.commit()
+
+            return {"message": "Question deleted successfully"}

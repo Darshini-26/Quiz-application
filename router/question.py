@@ -34,7 +34,7 @@ def create_question(question: QuestionCreate, category_id: int, uow: UnitOfWork 
 #     except Exception as e:
 #         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/", response_model=List[QuestionResponse],dependencies= [Depends(JWTBearer())])  # Adjust response model if necessary
+@router.get("/", response_model=List[QuestionResponse],dependencies= [Depends(JWTBearer(admin_required=True))])  # Adjust response model if necessary
 def read_questions(uow: UnitOfWork = Depends(get_uow)):
     try:
         # Get all questions using QuestionService
@@ -57,3 +57,22 @@ def get_quiz_questions(category_id: int, num_questions: int = 5,uow: UnitOfWork 
     # Fetch random questions with options from the service layer
     questions =  QuestionService.fetch_random_questions_for_quiz(uow, category_id, num_questions)
     return questions
+
+@router.put("/{category_id}/", response_model=QuestionResponse, dependencies=[Depends(JWTBearer(admin_required=True))])
+def update_question(
+    category_id: int,
+    question_id: int,
+    question_data: QuestionCreate,
+    uow: UnitOfWork = Depends(get_uow)
+):
+    try:
+        return QuestionService.update_question_service(uow, category_id, question_id, question_data)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+@router.delete("/{category_id}/", dependencies=[Depends(JWTBearer(admin_required=True))])
+def delete_question(category_id: int, question_id: int, uow: UnitOfWork = Depends(get_uow)):
+    try:
+        return QuestionService.delete_question_service(uow, category_id, question_id)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

@@ -48,3 +48,14 @@ class QuestionTypes:
             .limit(num_questions)
             .all()
         )
+    
+    @staticmethod
+    def get_question_by_id(session:Session, category_id: int, question_id: int):
+        return session.query(Question).filter(
+            Question.category_id == category_id,
+            Question.question_id == question_id
+        ).first()
+    
+    @staticmethod
+    def delete_question( session: Session, question: Question):
+        session.delete(question)
