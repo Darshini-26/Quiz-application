@@ -1,0 +1,14 @@
+
+fastapi
+uvicorn
+pydantic
+sqlalchemy
+datetime
+boto3
+psycopg2
+pydantic
+pandas
+python-dotenv
+passlib
+bcrypt
+redis
